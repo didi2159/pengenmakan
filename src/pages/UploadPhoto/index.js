@@ -2,29 +2,51 @@ import React, {useState} from 'react';
 import {StyleSheet, Text, View, Image, TouchableOpacity,} from 'react-native';
 import {Header, Button, Link, Gap} from '../../components';
 import {ILNullPhoto, IconAddPhoto, IconRemovePhoto} from '../../assets';
-import { colors, fonts } from '../../utils';
+import { colors, fonts, storeData } from '../../utils';
 import ImagePicker from 'react-native-image-picker';
 import {showMessage} from 'react-native-flash-message';
-
-const UploadPhoto = ({navigation}) => {
+import {Fire} from '../../config';
+    
+const UploadPhoto = ({navigation, route}) => {
+    const {fullName, profession, uid} = route.params; 
+    const [photoForDB, setPhotoForDB] = useState('');
     const [hasPhoto, setHasPhoto] = useState(false);
     const [photo, setPhoto] = useState(ILNullPhoto);
     const getImage = () => {
-        ImagePicker.launchImageLibrary({}, response => {
+        ImagePicker.launchImageLibrary( 
+            {quality: 0.5, maxWidth: 200, maxHeight: 200},
+            response => {
             console.log('response: ', response);
-            if(response.didCancel || response.error){
+            if(response.didCancel || response.error) {
                 showMessage({
-                    message: 'oops, sepertinya anda tidak memilih foto nya?',
+                   message: 'oops, sepertinya anda tidak memilih foto nya?',
                     type: 'default',
                     backgroundColor: colors.error,
                     color: colors.white,
                 });
             } else {
+                console.log('response getImage: ', response);
                 const source = {uri: response.uri};
+                
+                setPhotoForDB (`data:${response.type};base64, ${response.data}`);
                 setPhoto(source);
                 setHasPhoto(true);
             }    
-        });
+        },
+    );
+};
+
+    const uploadAndContinue = () => {
+        Fire.database()
+            .ref('users/' + uid + '/')
+            .update({photo: photoForDB});
+
+            const data = route.params;
+            data.photo = photoForDB;
+
+            storeData('user', data);
+            
+            navigation.replace('MainApp');
     };
     return (
         <View style={styles.page}>
@@ -32,20 +54,19 @@ const UploadPhoto = ({navigation}) => {
           <View style={styles.content}>
                 <View style={styles.profile}>
                     <TouchableOpacity style={styles.avatarWrapper} onPress={getImage}>
-                    <Image source={photo} style={styles.avatar} />
-                    {hasPhoto && <IconRemovePhoto style={styles.removePhoto} />}
-                    {!hasPhoto && <IconAddPhoto style={styles.addPhoto} />}
+                        <Image source={photo} style={styles.avatar} />
+                        {hasPhoto && <IconRemovePhoto style={styles.removePhoto} />}
+                        {!hasPhoto && <IconAddPhoto style={styles.addPhoto} />}
                     </TouchableOpacity>
-                    <Gap height={30} />
-                    <Text style={styles.name}>Didi Sugiarto</Text>
-                    <Text style={styles.profession}>Product Designer</Text>
-                    </View>
+                    <Text style={styles.name}>{fullName}</Text>
+                    <Text style={styles.profession}>{profession}</Text>
+                </View>
                 <View> 
                      <Button 
                      disable={!hasPhoto}
                      title="Upload and Continue"
-                     onPress={() => navigation.replace('MainApp')}
-                      />
+                     onPress={uploadAndContinue}
+                      /> 
                      <Gap height={30} />
                      <Link 
                      title="Skip for this"

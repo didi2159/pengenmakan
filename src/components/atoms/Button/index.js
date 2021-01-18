@@ -40,7 +40,7 @@ disableBg: {
     paddingVertical: 10,
     borderRadius: 10,
     backgroundColor: colors.button.disable.background,
-}, 
+},  
 text: (type) => ({
     fontSize: 18,
     fontFamily: fonts.primary[600],

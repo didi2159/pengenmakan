@@ -11,14 +11,14 @@ const Register = ({navigation}) => {
         profession: '',
         email: '',
         password: '',
-    });
+    }); 
 
     const [loading, setLoading] = useState(false);
 
     const onContinue = () => {
         console.log(form);
         setLoading(true);
-        Fire.auth()
+       Fire.auth()
         .createUserWithEmailAndPassword(form.email, form.password)
         .then(succes => {
             setLoading(false);
@@ -27,15 +27,15 @@ const Register = ({navigation}) => {
                 fullName: form.fullName,
                 profession: form.profession,
                 email: form.email,
-            };
+                uid: succes.user.uid,
+                };
 
-            Fire.database()
-            .ref('users/' +succes.user.uid+ '/')
+           Fire.database()
+            .ref('users/' + succes.user.uid + '/')
             .set(data);
 
-            
             storeData('user', data);
-            navigation.navigate('UploadPhoto')
+            navigation.navigate('UploadPhoto', data);
             console.log('register succes: ', succes);
         })
        .catch(error => {
@@ -47,7 +47,6 @@ const Register = ({navigation}) => {
             backgroundColor: colors.error,
             color: colors.white,
     });
-        console,log('error: ', error);
   });
     };
     return (
@@ -96,3 +95,4 @@ const styles = StyleSheet.create({
     page: {backgroundColor: colors.white, flex: 1},
     content: {padding: 40, paddingTop: 0},
 });
+  
